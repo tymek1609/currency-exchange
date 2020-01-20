@@ -1,6 +1,7 @@
 package com.exchange.app;
 
 import java.util.Currency;
+import java.util.List;
 
 public class RatesProvider {
     private ForeignExchangeRatesApiClient apiClient;
@@ -20,5 +21,9 @@ public class RatesProvider {
 
     public Double getExchangeRate(Currency requested, Currency exchanged) {
         return apiClient.getLatestRates(exchanged.getCurrencyCode()).get(requested.getCurrencyCode());
+    }
+
+    public List<ExchangeRates> getLatestExchangeRatesForCurrencies(List<String> currencySymbols){
+        return apiClient.getLatestRatesForCurrencies(currencySymbols);
     }
 }

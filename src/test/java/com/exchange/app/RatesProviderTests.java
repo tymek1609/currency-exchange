@@ -133,6 +133,29 @@ class RatesProviderTests {
         Mockito.verify(apiClient).getLatestRates();
     }
 
+    @Test
+    @DisplayName("Should return list latest rates of sended currency symbols")
+    void shouldReturnRatesOfSendedSymbols() {
+        //given
+        ForeignExchangeRatesApiClient apiClient = Mockito.mock(ForeignExchangeRatesApiClient.class);
+        List<ExchangeRates> exchangeRates = initializeLatestRatesForCurrencies();
+        Mockito.when(apiClient.getLatestRatesForCurrencies(new ArrayList<String>() {{
+            add(SEK);
+            add(USD);
+        }})).thenReturn(exchangeRates);
+
+        RatesProvider provider = new RatesProvider(apiClient);
+
+        //when
+        List<ExchangeRates> listOfLatestRates = provider.getLatestExchangeRatesForCurrencies(new ArrayList<String>() {{
+            add(SEK);
+            add(USD);
+        }});
+
+        //then
+
+    }
+
     private ExchangeRates initializeExchangeRates() {
         rates.put(USD, 1.22);
         rates.put(SEK, 10.30);
@@ -143,6 +166,30 @@ class RatesProviderTests {
         rates.put(EUR, 1.22);
         rates.put(SEK, 10.30);
         return initializeExchangeRates(base, DateTime.now(), rates);
+    }
+
+    private List<ExchangeRates> initializeLatestRatesForCurrencies() {
+        DateTime date = DateTime.now();
+        DateTime yesterday = date.minusDays(1);
+        Map<String, Double> ratesForUSD = new HashMap(){{
+            put(EUR, 0.87);
+            put(SEK, 3.07);
+        }};
+        Map<String, Double> ratesForEUR = new HashMap(){{
+            put(USD, 1.22);
+            put(SEK, 2.53);
+        }};
+        Map<String, Double> ratesForSEK = new HashMap(){{
+            put(EUR, 0.05);
+            put(USD, 0.1);
+        }};
+
+        List<ExchangeRates> exchangeRatesList = new ArrayList<ExchangeRates>() {{
+            add(initializeExchangeRates(USD, date, ratesForUSD));
+            add(initializeExchangeRates(EUR, date, ratesForEUR));
+            add(initializeExchangeRates(SEK, date, ratesForSEK));
+        }};
+        return exchangeRatesList;
     }
 
     private ExchangeRates initializeExchangeRates(String base, DateTime date, Map<String, Double> rates) {
