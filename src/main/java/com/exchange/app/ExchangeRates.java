@@ -22,5 +22,7 @@ public class ExchangeRates {
     public DateTime getDate() {
         return date;
     }
+
+    public String getBase() { return base; }
 }
 
