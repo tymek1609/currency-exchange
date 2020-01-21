@@ -170,8 +170,6 @@ class RatesProviderTests {
     }
 
     private List<ExchangeRates> initializeLatestRatesForCurrencies() {
-        DateTime date = DateTime.now();
-
         List<ExchangeRates> exchangeRatesList = new ArrayList<ExchangeRates>() {{
             add(new RatesForCurrencyForDayBuilder().basedUSD()
                     .forDay(DateTime.now())
