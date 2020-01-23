@@ -211,7 +211,7 @@ class RatesProviderTests {
         }
 
         public RatesForCurrencyForDayBuilder basedEUR() {
-            currency = SEK;
+            currency = EUR;
             return this;
         }
 
