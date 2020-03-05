@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,14 +23,14 @@ public class MyApiClientMock implements ForeignExchangeRatesApiClient {
     }};
 
     @Override
-    public ExchangeRates getLatestRates() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public List<ExchangeRates> getLatestRatesForCurrencies(List<String> symbols) {
         assertThat(SUPPORTED_CURRENCIES).containsAll(symbols);
         return initializeLatestRatesForCurrencies();
+    }
+
+    @Override
+    public ExchangeRates getLatestRates() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

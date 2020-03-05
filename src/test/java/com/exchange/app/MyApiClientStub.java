@@ -10,16 +10,16 @@ import java.util.List;
  * Klasa utworzona przez: michal.tyminski
  * Data utworzenia: 05.03.2020
  */
-class MyApiClientStub implements ForeignExchangeRatesApiClient {
-
-    @Override
-    public ExchangeRates getLatestRates() {
-        throw new UnsupportedOperationException();
-    }
+public class MyApiClientStub implements ForeignExchangeRatesApiClient {
 
     @Override
     public List<ExchangeRates> getLatestRatesForCurrencies(List<String> symbols) {
         return initializeLatestRatesForCurrencies();
+    }
+
+    @Override
+    public ExchangeRates getLatestRates() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
