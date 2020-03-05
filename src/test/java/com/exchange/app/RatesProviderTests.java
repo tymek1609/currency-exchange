@@ -17,10 +17,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 class RatesProviderTests {
 
-    private static final String SEK = "SEK";
-    private static final String USD = "USD";
-    private static final String EUR = "EUR";
-
     private Map<String, Double> rates;
 
     @BeforeEach
@@ -41,10 +37,10 @@ class RatesProviderTests {
         RatesProvider provider = new RatesProvider(apiClient);
 
         //when
-        Double rateUSD = provider.getExchangeRateInEUR(Currency.getInstance(USD));
+        Double rateUSD = provider.getExchangeRateInEUR(Currency.getInstance(CurrencyStaticFields.USD));
 
         //then
-        assertThat(exchangeRates.get(USD)).isEqualTo(rateUSD);
+        assertThat(exchangeRates.get(CurrencyStaticFields.USD)).isEqualTo(rateUSD);
     }
 
     @Test
@@ -58,13 +54,13 @@ class RatesProviderTests {
         RatesProvider provider = new RatesProvider(apiClient);
 
         //when
-        Double rateSEK = provider.getExchangeRateInEUR(Currency.getInstance(SEK));
-        Double rateUSD = provider.getExchangeRateInEUR(Currency.getInstance(USD));
+        Double rateSEK = provider.getExchangeRateInEUR(Currency.getInstance(CurrencyStaticFields.SEK));
+        Double rateUSD = provider.getExchangeRateInEUR(Currency.getInstance(CurrencyStaticFields.USD));
 
         //then
         assertAll(
-                () -> assertEquals(exchangeRates.get(USD), rateUSD, "USD rate should be included"),
-                () -> assertEquals(exchangeRates.get(SEK), rateSEK, "SEK rate should be included")
+                () -> assertEquals(exchangeRates.get(CurrencyStaticFields.USD), rateUSD, "USD rate should be included"),
+                () -> assertEquals(exchangeRates.get(CurrencyStaticFields.SEK), rateSEK, "SEK rate should be included")
         );
     }
 
@@ -73,7 +69,9 @@ class RatesProviderTests {
         //given
         ForeignExchangeRatesApiClient apiClient = Mockito.mock(ForeignExchangeRatesApiClient.class);
         ExchangeRates exchangeRates = initializeExchangeRates();
-        List<String> currencies = Arrays.asList(new String[]{EUR, SEK, USD});
+        List<String> currencies = Arrays.asList(CurrencyStaticFields.EUR,
+                CurrencyStaticFields.SEK,
+                CurrencyStaticFields.USD);
 
         Mockito.when(apiClient.getLatestRates(anyString())).thenAnswer(
                 new Answer<ExchangeRates>() {
@@ -93,7 +91,7 @@ class RatesProviderTests {
         RatesProvider provider = new RatesProvider(apiClient);
 
         //when
-        Double rate = provider.getExchangeRate(Currency.getInstance(SEK), Currency.getInstance("CAD"));
+        Double rate = provider.getExchangeRate(Currency.getInstance(CurrencyStaticFields.SEK), Currency.getInstance(CurrencyStaticFields.EUR));
 
         //then
         assertThat(10.30).isEqualTo(rate);
@@ -126,7 +124,7 @@ class RatesProviderTests {
         RatesProvider provider = new RatesProvider(apiClient);
 
         //when
-        provider.getExchangeRateInEUR(Currency.getInstance(SEK));
+        provider.getExchangeRateInEUR(Currency.getInstance(CurrencyStaticFields.SEK));
 
         //then
         Mockito.verify(apiClient).getLatestRates();
@@ -139,8 +137,8 @@ class RatesProviderTests {
         ForeignExchangeRatesApiClient apiClient = Mockito.mock(ForeignExchangeRatesApiClient.class);
         List<ExchangeRates> exchangeRates = initializeLatestRatesForCurrencies();
         List<String> symbolList = new ArrayList<String>() {{
-            add(SEK);
-            add(USD);
+            add(CurrencyStaticFields.SEK);
+            add(CurrencyStaticFields.USD);
         }};
         Mockito.when(apiClient.getLatestRatesForCurrencies(symbolList)).thenReturn(exchangeRates);
 
@@ -157,15 +155,61 @@ class RatesProviderTests {
         assertThat( currencySymbolsOfLatestRates.containsAll(symbolParamsSet));
     }
 
+    @Test
+    @DisplayName("Should return list of latest rates of currency symbols - Vanilla Java Stub")
+    void shouldReturnRatesOfSendedSymbolsOfCurrenciesOnlyVanillaJavaStub(){
+        //given
+        ForeignExchangeRatesApiClient apiClient = new MyApiClientStub();
+        List<String> symbolList = new ArrayList<String>() {{
+            add(CurrencyStaticFields.SEK);
+            add(CurrencyStaticFields.USD);
+        }};
+
+        RatesProvider provider = new RatesProvider(apiClient);
+
+        //when
+        List<ExchangeRates> listOfLatestRates = provider.getLatestExchangeRatesForCurrencies(symbolList);
+        Set<String> symbolParamsSet = new HashSet<>(symbolList);
+        Set<String> currencySymbolsOfLatestRates = new HashSet<>(listOfLatestRates.stream()
+                .map(el->el.getBase())
+                .collect(Collectors.toList()));
+        //then
+        assertThat( symbolParamsSet.size() == 2);
+        assertThat( currencySymbolsOfLatestRates.containsAll(symbolParamsSet));
+    }
+
+    @Test
+    @DisplayName("Should return list of latest rates of currency symbols - Vanilla Java Mock")
+    void shouldReturnRatesOfSendedSymbolsOfCurrenciesOnlyVanillaJavaMock(){
+        //given
+        ForeignExchangeRatesApiClient apiClient = new MyApiClientMock();
+        List<String> symbolList = new ArrayList<String>() {{
+            add(CurrencyStaticFields.SEK);
+            add(CurrencyStaticFields.CAD);
+        }};
+
+        RatesProvider provider = new RatesProvider(apiClient);
+
+        //when
+        List<ExchangeRates> listOfLatestRates = provider.getLatestExchangeRatesForCurrencies(symbolList);
+        Set<String> symbolParamsSet = new HashSet<>(symbolList);
+        Set<String> currencySymbolsOfLatestRates = new HashSet<>(listOfLatestRates.stream()
+                .map(el->el.getBase())
+                .collect(Collectors.toList()));
+        //then
+        assertThat( symbolParamsSet.size() == 2);
+        assertThat( currencySymbolsOfLatestRates.containsAll(symbolParamsSet));
+    }
+
     private ExchangeRates initializeExchangeRates() {
-        rates.put(USD, 1.22);
-        rates.put(SEK, 10.30);
-        return initializeExchangeRates(EUR, DateTime.now(), rates);
+        rates.put(CurrencyStaticFields.USD, 1.22);
+        rates.put(CurrencyStaticFields.SEK, 10.30);
+        return initializeExchangeRates(CurrencyStaticFields.EUR, DateTime.now(), rates);
     }
 
     private ExchangeRates initializeExchangeRates(String base) {
-        rates.put(EUR, 1.22);
-        rates.put(SEK, 10.30);
+        rates.put(CurrencyStaticFields.EUR, 1.22);
+        rates.put(CurrencyStaticFields.SEK, 10.30);
         return initializeExchangeRates(base, DateTime.now(), rates);
     }
 
@@ -173,18 +217,18 @@ class RatesProviderTests {
         List<ExchangeRates> exchangeRatesList = new ArrayList<ExchangeRates>() {{
             add(new RatesForCurrencyForDayBuilder().basedUSD()
                     .forDay(DateTime.now())
-                    .addRate(EUR, 0.84)
-                    .addRate(SEK, 12.34)
+                    .addRate(CurrencyStaticFields.EUR, 0.84)
+                    .addRate(CurrencyStaticFields.SEK, 12.34)
                     .build());
             add(new RatesForCurrencyForDayBuilder().basedSEK()
                     .forDay(DateTime.now())
-                    .addRate(USD, 0.12)
-                    .addRate(EUR, 0.09)
+                    .addRate(CurrencyStaticFields.USD, 0.12)
+                    .addRate(CurrencyStaticFields.EUR, 0.09)
                     .build());
             add(new RatesForCurrencyForDayBuilder().basedEUR()
                     .forDay(DateTime.now())
-                    .addRate(USD, 1.12)
-                    .addRate(SEK, 14.09)
+                    .addRate(CurrencyStaticFields.USD, 1.12)
+                    .addRate(CurrencyStaticFields.SEK, 14.09)
                     .build());
         }};
         return exchangeRatesList;
@@ -194,62 +238,4 @@ class RatesProviderTests {
         return new ExchangeRates(base, date, rates);
     }
 
-    private class RatesForCurrencyForDayBuilder {
-
-        private String currency;
-        private Map<String, Double> rates;
-        private DateTime date;
-
-        public RatesForCurrencyForDayBuilder basedUSD() {
-            currency = USD;
-            return this;
-        }
-
-        public RatesForCurrencyForDayBuilder basedSEK() {
-            currency = SEK;
-            return this;
-        }
-
-        public RatesForCurrencyForDayBuilder basedEUR() {
-            currency = EUR;
-            return this;
-        }
-
-        public RatesForCurrencyForDayBuilder based(String currency) {
-            this.currency = currency;
-            return this;
-        }
-
-        public RatesForCurrencyForDayBuilder addRate(String foreignCurrency, Double rate) {
-            if (rates == null) rates = new HashMap<>();
-            if (currency != null && !currency.equals(foreignCurrency))
-                rates.put(foreignCurrency, rate);
-            return this;
-        }
-
-        /**
-         * diff from today
-         *
-         * @param day
-         * @return
-         */
-        public RatesForCurrencyForDayBuilder forDay(int day) {
-            DateTime dateTime = DateTime.now();
-            if (day > 0) dateTime = dateTime.plusDays(day);
-            if (day < 0) dateTime = dateTime.minusDays(-day);
-            date = dateTime;
-            return this;
-        }
-
-        public RatesForCurrencyForDayBuilder forDay(DateTime date) {
-            this.date = date;
-            return this;
-        }
-
-        public ExchangeRates build() {
-            if (date == null) this.date = DateTime.now();
-            return new ExchangeRates(currency, date, rates);
-        }
-
-    }
 }
